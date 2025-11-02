@@ -1,0 +1,95 @@
+@import "variables";
+@import "mixins";
+
+.beverage-list {
+  &--header {
+    @include flex-between;
+    margin-bottom: $spacing-xl;
+  }
+
+  &--title {
+    margin: 0;
+    color: $text-primary;
+  }
+
+  &--new-button {
+    @include button-success;
+  }
+
+  &--error {
+    @include error-box;
+    margin-bottom: $spacing-xl;
+  }
+
+  &--empty {
+    padding: 40px;
+    text-align: center;
+    color: $text-muted;
+  }
+
+  &--loading {
+    color: $text-secondary;
+  }
+
+  &--table-wrapper {
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    overflow: hidden;
+    background-color: $bg-primary;
+  }
+
+  &--table {
+    @include table-base;
+    background-color: $bg-primary;
+
+    thead {
+      @include table-header;
+      background-color: $bg-tertiary;
+
+      th {
+        padding: $spacing-md;
+        text-align: left;
+        border: 1px solid $border-color;
+        font-size: $font-size-sm;
+        color: $text-primary;
+
+        &.beverage-list--th-actions {
+          text-align: center;
+          width: 150px;
+        }
+      }
+    }
+
+    tbody {
+      td {
+        padding: $spacing-md;
+        border: 1px solid $border-color;
+        color: $text-primary;
+      }
+    }
+  }
+
+  &--actions {
+    display: flex;
+    gap: $spacing-sm;
+    justify-content: center;
+  }
+
+  &--edit-button {
+    @include button-primary;
+    padding: 6px $spacing-md;
+    font-size: $font-size-xs;
+  }
+
+  &--delete-button {
+    @include button-danger;
+    padding: 6px $spacing-md;
+    font-size: $font-size-xs;
+  }
+
+  &--refresh-button {
+    @include button-success;
+    margin-bottom: $spacing-xl;
+  }
+}
+

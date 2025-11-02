@@ -1,0 +1,109 @@
+@import "variables";
+@import "mixins";
+
+.post-form {
+  @include card-secondary;
+  margin-bottom: $spacing-xxl;
+
+  &--title {
+    margin-top: 0;
+    color: $text-primary;
+  }
+
+  &--form-group {
+    margin-bottom: $spacing-lg;
+
+    label {
+      display: block;
+      margin-bottom: $spacing-sm;
+      font-weight: bold;
+      color: $text-primary;
+    }
+
+    .required {
+      color: $danger-color;
+    }
+  }
+
+  &--input {
+    @include input-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--textarea {
+    @include textarea-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--select {
+    @include select-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+    flex: 1;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--beverage-controls {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    align-items: center;
+  }
+
+  &--add-button {
+    @include button-success;
+  }
+
+  &--beverage-item {
+    display: flex;
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
+    align-items: center;
+  }
+
+  &--amount-input {
+    @include input-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+    width: 120px;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--remove-button {
+    @include button-danger;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+  }
+
+  &--error {
+    @include error-box;
+    margin-bottom: $spacing-lg;
+  }
+
+  &--submit-button {
+    @include button-primary;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+  }
+}
+

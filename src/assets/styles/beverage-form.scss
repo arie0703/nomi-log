@@ -1,0 +1,83 @@
+@import "variables";
+@import "mixins";
+
+.beverage-form {
+  @include card-secondary;
+  margin-bottom: $spacing-xl;
+
+  &--title {
+    margin-top: 0;
+    color: $text-primary;
+  }
+
+  &--form-group {
+    margin-bottom: $spacing-lg;
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: $text-primary;
+    }
+
+    .required {
+      color: $danger-color;
+    }
+  }
+
+  &--input {
+    @include input-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--select {
+    @include select-base;
+    background-color: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  &--error {
+    @include error-box;
+    margin-bottom: $spacing-lg;
+  }
+
+  &--buttons {
+    display: flex;
+    gap: $spacing-md;
+  }
+
+  &--submit-button {
+    @include button-primary;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+  }
+
+  &--cancel-button {
+    @include button-base;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+    background-color: #999;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: darken(#999, 10%);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+

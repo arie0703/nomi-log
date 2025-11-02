@@ -1,0 +1,112 @@
+// コンポーネントスタイル
+@import "variables";
+@import "mixins";
+
+// ボタンコンポーネント
+.btn {
+  @include button-base;
+
+  &.btn-primary {
+    @include button-primary;
+  }
+
+  &.btn-success {
+    @include button-success;
+  }
+
+  &.btn-danger {
+    @include button-danger;
+  }
+
+  &.btn-small {
+    padding: 6px 12px;
+    font-size: $font-size-xs;
+  }
+}
+
+// カードコンポーネント
+.card {
+  @include card;
+
+  &.card-secondary {
+    @include card-secondary;
+  }
+}
+
+// フォームコンポーネント
+.form-group {
+  margin-bottom: $spacing-lg;
+
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .required {
+    color: $danger-color;
+  }
+}
+
+.form-input {
+  @include input-base;
+}
+
+.form-select {
+  @include select-base;
+}
+
+.form-textarea {
+  @include textarea-base;
+}
+
+// エラー表示
+.error-box {
+  @include error-box;
+  margin-bottom: $spacing-lg;
+}
+
+// テーブルコンポーネント
+.table {
+  @include table-base;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+
+  thead {
+    @include table-header;
+
+    th {
+      padding: $spacing-md;
+      text-align: left;
+      border: 1px solid $border-color;
+      font-size: $font-size-sm;
+    }
+  }
+
+  tbody {
+    td {
+      padding: $spacing-md;
+      border: 1px solid $border-color;
+    }
+  }
+}
+
+// タブコンポーネント
+.tabs {
+  display: flex;
+  border-bottom: 2px solid $border-color;
+  margin-bottom: $spacing-xl;
+
+  .tab-button {
+    @include tab-button;
+    color: $text-secondary;
+
+    &.active {
+      font-weight: bold;
+      color: $primary-color;
+      border-bottom: 3px solid $primary-color;
+    }
+  }
+}
+

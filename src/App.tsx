@@ -1,35 +1,115 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import "./assets/styles/app.scss";
+import PostForm from "./components/PostForm";
+import PostList from "./components/PostList";
+import BeverageList from "./components/BeverageList";
+import type { PostWithBeverages, Beverage } from "./types";
+
+type Tab = "posts" | "beverages";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeTab, setActiveTab] = useState<Tab>("posts");
+
+  // 投稿関連の状態
+  const [posts, setPosts] = useState<PostWithBeverages[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [postsError, setPostsError] = useState<string | null>(null);
+
+  // お酒関連の状態
+  const [beverages, setBeverages] = useState<Beverage[]>([]);
+  const [beveragesLoading, setBeveragesLoading] = useState(true);
+  const [beveragesError, setBeveragesError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab === "posts") {
+      loadPosts();
+    } else {
+      loadBeverages();
+    }
+  }, [activeTab]);
+
+  const loadPosts = async () => {
+    try {
+      setPostsLoading(true);
+      setPostsError(null);
+      const result = await invoke<PostWithBeverages[]>("get_posts");
+      setPosts(result);
+    } catch (err) {
+      setPostsError(
+        err instanceof Error ? err.message : "投稿の取得に失敗しました"
+      );
+      console.error("Error loading posts:", err);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  const loadBeverages = async () => {
+    try {
+      setBeveragesLoading(true);
+      setBeveragesError(null);
+      const result = await invoke<Beverage[]>("get_beverages");
+      setBeverages(result);
+    } catch (err) {
+      setBeveragesError(
+        err instanceof Error ? err.message : "お酒の取得に失敗しました"
+      );
+      console.error("Error loading beverages:", err);
+    } finally {
+      setBeveragesLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app">
+      <h1 className="app--title">飲みログ</h1>
+
+      {/* タブ */}
+      <div className="app--tabs">
+        <button
+          onClick={() => setActiveTab("posts")}
+          className={`app--tab-button ${activeTab === "posts" ? "active" : ""}`}
+        >
+          投稿
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button
+          onClick={() => setActiveTab("beverages")}
+          className={`app--tab-button ${
+            activeTab === "beverages" ? "active" : ""
+          }`}
+        >
+          お酒管理
+        </button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      {/* 投稿タブ */}
+      {activeTab === "posts" && (
+        <div className="app--content">
+          {postsError && <div className="app--error">エラー: {postsError}</div>}
+
+          <PostForm onPostCreated={loadPosts} />
+          <PostList posts={posts} loading={postsLoading} />
+        </div>
+      )}
+
+      {/* お酒管理タブ */}
+      {activeTab === "beverages" && (
+        <div className="app--content">
+          {beveragesError && (
+            <div className="app--error">エラー: {beveragesError}</div>
+          )}
+
+          <BeverageList
+            beverages={beverages}
+            loading={beveragesLoading}
+            onBeverageDeleted={loadBeverages}
+            onBeverageSaved={loadBeverages}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
