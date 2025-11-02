@@ -1,0 +1,138 @@
+// ミックスイン定義
+
+// フレックスボックス
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// ボタンスタイル
+@mixin button-base {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: none;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: $primary-color;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: darken($primary-color, 10%);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-success {
+  @include button-base;
+  background-color: $secondary-color;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: darken($secondary-color, 10%);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-danger {
+  @include button-base;
+  background-color: $danger-color;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: darken($danger-color, 10%);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// カードスタイル
+@mixin card {
+  border: 1px solid $border-color;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+  background-color: $bg-primary;
+}
+
+@mixin card-secondary {
+  @include card;
+  background-color: $bg-secondary;
+}
+
+// フォーム要素
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-sm;
+  font-size: $font-size-sm;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+  }
+}
+
+@mixin select-base {
+  @include input-base;
+}
+
+@mixin textarea-base {
+  @include input-base;
+  font-family: inherit;
+  resize: vertical;
+}
+
+// エラー表示
+@mixin error-box {
+  padding: $spacing-md;
+  background-color: #fee;
+  color: #c33;
+  border-radius: $border-radius;
+}
+
+// テーブルスタイル
+@mixin table-base {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+@mixin table-header {
+  background-color: $bg-tertiary;
+  font-weight: bold;
+}
+
+// タブスタイル
+@mixin tab-button {
+  padding: 12px 24px;
+  font-size: $font-size-base;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+

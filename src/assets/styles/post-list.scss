@@ -1,0 +1,76 @@
+@import "variables";
+@import "mixins";
+
+.post-list {
+  &--title {
+    margin-bottom: $spacing-xl;
+    color: $text-primary;
+  }
+
+  &--container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  &--empty {
+    padding: 40px;
+    text-align: center;
+    color: $text-muted;
+  }
+
+  &--loading {
+    color: $text-secondary;
+  }
+
+  &--item {
+    @include card;
+    background-color: $bg-primary;
+    border-color: $border-color;
+
+    &-header {
+      margin-bottom: $spacing-lg;
+    }
+
+    &-title {
+      margin: 0 0 $spacing-md 0;
+      font-size: $font-size-lg;
+      color: $text-primary;
+    }
+
+    &-date {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+
+    &-comment {
+      margin-bottom: $spacing-lg;
+      padding: $spacing-md;
+      background-color: $bg-tertiary;
+      border-radius: $border-radius;
+      white-space: pre-wrap;
+      color: $text-primary;
+    }
+
+    &-beverages {
+      &-label {
+        font-size: $font-size-sm;
+        font-weight: bold;
+        margin-bottom: $spacing-sm;
+        color: $text-secondary;
+      }
+
+      &-list {
+        margin: 0;
+        padding-left: $spacing-xl;
+        color: $text-primary;
+
+        li {
+          margin-bottom: 5px;
+          font-size: $font-size-sm;
+        }
+      }
+    }
+  }
+}
+

@@ -1,145 +1,111 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import "./assets/styles/app.scss";
+import PostForm from "./components/PostForm";
+import PostList from "./components/PostList";
+import BeverageList from "./components/BeverageList";
+import type { PostWithBeverages, Beverage } from "./types";
 
-interface Category {
-  id: number;
-  name: string;
-  display_order: number;
-  created_at?: string;
-  updated_at?: string;
-}
+type Tab = "posts" | "beverages";
 
 function App() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>("posts");
+
+  // 投稿関連の状態
+  const [posts, setPosts] = useState<PostWithBeverages[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [postsError, setPostsError] = useState<string | null>(null);
+
+  // お酒関連の状態
+  const [beverages, setBeverages] = useState<Beverage[]>([]);
+  const [beveragesLoading, setBeveragesLoading] = useState(true);
+  const [beveragesError, setBeveragesError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (activeTab === "posts") {
+      loadPosts();
+    } else {
+      loadBeverages();
+    }
+  }, [activeTab]);
 
-  const loadCategories = async () => {
+  const loadPosts = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const result = await invoke<Category[]>("get_categories");
-      setCategories(result);
+      setPostsLoading(true);
+      setPostsError(null);
+      const result = await invoke<PostWithBeverages[]>("get_posts");
+      setPosts(result);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "カテゴリーの取得に失敗しました"
+      setPostsError(
+        err instanceof Error ? err.message : "投稿の取得に失敗しました"
       );
-      console.error("Error loading categories:", err);
+      console.error("Error loading posts:", err);
     } finally {
-      setLoading(false);
+      setPostsLoading(false);
+    }
+  };
+
+  const loadBeverages = async () => {
+    try {
+      setBeveragesLoading(true);
+      setBeveragesError(null);
+      const result = await invoke<Beverage[]>("get_beverages");
+      setBeverages(result);
+    } catch (err) {
+      setBeveragesError(
+        err instanceof Error ? err.message : "お酒の取得に失敗しました"
+      );
+      console.error("Error loading beverages:", err);
+    } finally {
+      setBeveragesLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
-      <h1>飲みログ - カテゴリー一覧</h1>
+    <div className="app">
+      <h1 className="app--title">飲みログ</h1>
 
-      <div style={{ marginBottom: "20px" }}>
+      {/* タブ */}
+      <div className="app--tabs">
         <button
-          onClick={loadCategories}
-          disabled={loading}
-          style={{
-            padding: "8px 16px",
-            fontSize: "14px",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
+          onClick={() => setActiveTab("posts")}
+          className={`app--tab-button ${activeTab === "posts" ? "active" : ""}`}
         >
-          {loading ? "読み込み中..." : "再読み込み"}
+          投稿
+        </button>
+        <button
+          onClick={() => setActiveTab("beverages")}
+          className={`app--tab-button ${
+            activeTab === "beverages" ? "active" : ""
+          }`}
+        >
+          お酒管理
         </button>
       </div>
 
-      {error && (
-        <div
-          style={{
-            padding: "12px",
-            backgroundColor: "#fee",
-            color: "#c33",
-            borderRadius: "4px",
-            marginBottom: "20px",
-          }}
-        >
-          エラー: {error}
+      {/* 投稿タブ */}
+      {activeTab === "posts" && (
+        <div className="app--content">
+          {postsError && <div className="app--error">エラー: {postsError}</div>}
+
+          <PostForm onPostCreated={loadPosts} />
+          <PostList posts={posts} loading={postsLoading} />
         </div>
       )}
 
-      {loading && categories.length === 0 ? (
-        <div>読み込み中...</div>
-      ) : categories.length === 0 ? (
-        <div>カテゴリーがありません</div>
-      ) : (
-        <div>
-          <h2>カテゴリー一覧 ({categories.length}件)</h2>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              marginTop: "10px",
-            }}
-          >
-            <thead>
-              <tr style={{ backgroundColor: "#f5f5f5" }}>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  ID
-                </th>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  名称
-                </th>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  表示順
-                </th>
-                <th
-                  style={{
-                    padding: "10px",
-                    textAlign: "left",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  作成日時
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id}>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {category.id}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {category.name}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {category.display_order}
-                  </td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {category.created_at || "-"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* お酒管理タブ */}
+      {activeTab === "beverages" && (
+        <div className="app--content">
+          {beveragesError && (
+            <div className="app--error">エラー: {beveragesError}</div>
+          )}
+
+          <BeverageList
+            beverages={beverages}
+            loading={beveragesLoading}
+            onBeverageDeleted={loadBeverages}
+            onBeverageSaved={loadBeverages}
+          />
         </div>
       )}
     </div>

@@ -267,9 +267,25 @@ pub fn create_beverage(
 ) -> Result<i64, AppError> {
     let db: MutexGuard<'_, Database> = db.lock().unwrap();
     
+    // バリデーション: 名称が空でないことを確認
+    if request.name.trim().is_empty() {
+        return Err(AppError::InvalidInput("お酒の名称を入力してください".to_string()));
+    }
+    
+    // カテゴリーが存在するか確認
+    let category_count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM categories WHERE id = ?1",
+        params![request.category_id],
+        |row| row.get(0),
+    )?;
+    
+    if category_count == 0 {
+        return Err(AppError::InvalidInput("指定されたカテゴリーが見つかりません".to_string()));
+    }
+    
     db.conn().execute(
         "INSERT INTO beverages (name, alcohol_content, category_id) VALUES (?1, ?2, ?3)",
-        params![request.name, request.alcohol_content, request.category_id],
+        params![request.name.trim(), request.alcohol_content, request.category_id],
     )?;
 
     Ok(db.conn().last_insert_rowid())
@@ -283,9 +299,36 @@ pub fn update_beverage(
 ) -> Result<(), AppError> {
     let db: MutexGuard<'_, Database> = db.lock().unwrap();
     
+    // バリデーション: 名称が空でないことを確認
+    if request.name.trim().is_empty() {
+        return Err(AppError::InvalidInput("お酒の名称を入力してください".to_string()));
+    }
+    
+    // お酒が存在するか確認
+    let count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM beverages WHERE id = ?1",
+        params![id],
+        |row| row.get(0),
+    )?;
+    
+    if count == 0 {
+        return Err(AppError::InvalidInput("指定されたお酒が見つかりません".to_string()));
+    }
+    
+    // カテゴリーが存在するか確認
+    let category_count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM categories WHERE id = ?1",
+        params![request.category_id],
+        |row| row.get(0),
+    )?;
+    
+    if category_count == 0 {
+        return Err(AppError::InvalidInput("指定されたカテゴリーが見つかりません".to_string()));
+    }
+    
     db.conn().execute(
         "UPDATE beverages SET name = ?1, alcohol_content = ?2, category_id = ?3, updated_at = datetime('now', 'localtime') WHERE id = ?4",
-        params![request.name, request.alcohol_content, request.category_id, id],
+        params![request.name.trim(), request.alcohol_content, request.category_id, id],
     )?;
 
     Ok(())
@@ -294,6 +337,30 @@ pub fn update_beverage(
 #[tauri::command]
 pub fn delete_beverage(db: State<'_, Mutex<Database>>, id: i64) -> Result<(), AppError> {
     let db: MutexGuard<'_, Database> = db.lock().unwrap();
+    
+    // お酒が存在するか確認
+    let count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM beverages WHERE id = ?1",
+        params![id],
+        |row| row.get(0),
+    )?;
+    
+    if count == 0 {
+        return Err(AppError::InvalidInput("指定されたお酒が見つかりません".to_string()));
+    }
+    
+    // 使用されているかチェック（投稿に紐づいている場合）
+    let usage_count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM post_beverages WHERE beverage_id = ?1",
+        params![id],
+        |row| row.get(0),
+    )?;
+    
+    if usage_count > 0 {
+        return Err(AppError::InvalidInput(
+            format!("このお酒は{}件の投稿で使用されているため削除できません", usage_count)
+        ));
+    }
     
     db.conn().execute(
         "DELETE FROM beverages WHERE id = ?1",

@@ -1,0 +1,47 @@
+@import "variables";
+@import "mixins";
+
+.app {
+  padding: $spacing-xl;
+  max-width: 90vw;
+  margin: 0 auto;
+  min-height: 90vh;
+
+  &--title {
+    margin-bottom: $spacing-xxl;
+    color: $text-primary;
+    text-align: center;
+  }
+
+  &--tabs {
+    display: flex;
+    border-bottom: 2px solid $border-color;
+    margin-bottom: $spacing-xl;
+    max-width: 800px;
+    margin: 10px auto;
+  }
+
+  &--tab-button {
+    @include tab-button;
+    color: $text-secondary;
+
+    &.active {
+      font-weight: bold;
+      color: $primary-color;
+      border-bottom: 3px solid $primary-color;
+    }
+  }
+
+  // コンテンツ内容の共通スタイル
+  &--content {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &--error {
+    @include error-box;
+    margin-bottom: $spacing-xl;
+  }
+}
+
