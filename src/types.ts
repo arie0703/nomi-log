@@ -24,7 +24,7 @@ export interface BeverageAmount {
 
 export interface Post {
   id?: number;
-  title: string;
+  date: string;
   comment?: string;
   created_at?: string;
   updated_at?: string;
@@ -32,7 +32,7 @@ export interface Post {
 
 export interface PostWithBeverages {
   id: number;
-  title: string;
+  date: string;
   comment?: string;
   created_at: string;
   updated_at: string;
@@ -40,7 +40,7 @@ export interface PostWithBeverages {
 }
 
 export interface CreatePostRequest {
-  title: string;
+  date: string;
   comment?: string;
   beverages: BeverageAmountInput[];
 }

@@ -22,7 +22,7 @@ export default function PostList({ posts, loading }: PostListProps) {
         {posts.map((post) => (
           <div key={post.id} className="post-list--item">
             <div className="post-list--item-header">
-              <h3 className="post-list--item-title">{post.title}</h3>
+              <h3 className="post-list--item-title">{post.date}</h3>
               <div className="post-list--item-date">
                 {new Date(post.created_at).toLocaleString("ja-JP")}
               </div>

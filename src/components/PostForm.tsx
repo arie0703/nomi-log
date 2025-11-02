@@ -8,7 +8,14 @@ interface PostFormProps {
 }
 
 export default function PostForm({ onPostCreated }: PostFormProps) {
-  const [title, setTitle] = useState("");
+  const [date, setDate] = useState(() => {
+    // デフォルトは今日の日付
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  });
   const [comment, setComment] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -92,8 +99,15 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     e.preventDefault();
     setError(null);
 
-    if (!title.trim()) {
-      setError("タイトルを入力してください");
+    if (!date.trim()) {
+      setError("日付を入力してください");
+      return;
+    }
+
+    // 日付の形式をチェック（YYYY-MM-DD）
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      setError("日付はYYYY-MM-DD形式で入力してください");
       return;
     }
 
@@ -111,7 +125,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
     try {
       setLoading(true);
       const request: CreatePostRequest = {
-        title: title.trim(),
+        date: date.trim(),
         comment: comment.trim() || undefined,
         beverages: beveragesWithAmount.map((sb) => ({
           beverage_id: sb.beverage.id,
@@ -121,7 +135,11 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
 
       await invoke("create_post", { request });
       // フォームをリセット
-      setTitle("");
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      setDate(`${year}-${month}-${day}`);
       setComment("");
       setSelectedCategoryId(null);
       setSelectedBeverages([]);
@@ -141,14 +159,14 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
       <form onSubmit={handleSubmit}>
         <div className="post-form--form-group">
           <label>
-            タイトル <span className="required">*</span>
+            日付 <span className="required">*</span>
           </label>
           <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
             className="post-form--input"
-            placeholder="例: 今日の晩酌"
+            required
           />
         </div>
 

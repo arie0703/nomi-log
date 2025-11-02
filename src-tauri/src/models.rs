@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Post {
     pub id: Option<i64>,
-    pub title: String,
+    pub date: String,
     pub comment: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
@@ -12,7 +12,7 @@ pub struct Post {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PostWithBeverages {
     pub id: i64,
-    pub title: String,
+    pub date: String,
     pub comment: Option<String>,
     pub created_at: String,
     pub updated_at: String,
@@ -28,7 +28,7 @@ pub struct BeverageAmount {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreatePostRequest {
-    pub title: String,
+    pub date: String,
     pub comment: Option<String>,
     pub beverages: Vec<BeverageAmountInput>,
 }

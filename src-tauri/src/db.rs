@@ -1,4 +1,5 @@
 use rusqlite::{Connection, Result, params};
+use rusqlite_migration::{Migrations, M};
 use std::path::PathBuf;
 use crate::error::AppError;
 
@@ -8,7 +9,17 @@ pub struct Database {
 
 impl Database {
     pub fn new(db_path: PathBuf) -> Result<Self, AppError> {
-        let conn = Connection::open(db_path)?;
+        let mut conn = Connection::open(db_path)?;
+        
+        // マイグレーション実行（&mutが必要）
+        let migrations = Migrations::new(vec![
+            M::up(include_str!("migrations/001_remove_title_add_date.sql")),
+        ]);
+        
+        log::info!("マイグレーションを実行中...");
+        migrations.to_latest(&mut conn)?;
+        log::info!("マイグレーションが完了しました");
+        
         let db = Database { conn };
         db.init()?;
         Ok(db)
@@ -42,7 +53,7 @@ impl Database {
         self.conn.execute(
             "CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
+                date TEXT NOT NULL,
                 comment TEXT,
                 created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
                 updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
@@ -88,6 +99,10 @@ impl Database {
             [],
         )?;
         self.conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)",
+            [],
+        )?;
+        self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_beverages_category_id ON beverages(category_id)",
             [],
         )?;
@@ -126,7 +141,9 @@ impl Database {
             ("梅酒", 4),
             ("焼酎", 5),
             ("ワイン", 6),
-            ("ノンアルコール", 7),
+            ("日本酒", 7),
+            ("ラム酒", 8),
+            ("ノンアルコール", 9),
         ];
 
         for (name, display_order) in initial_categories {

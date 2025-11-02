@@ -5,6 +5,9 @@ pub enum AppError {
     #[error("Database error: {0}")]
     Database(#[from] rusqlite::Error),
     
+    #[error("Migration error: {0}")]
+    Migration(#[from] rusqlite_migration::Error),
+    
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
     

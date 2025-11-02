@@ -1,0 +1,286 @@
+# バックエンド仕様
+
+## マイグレーション
+
+### 概要
+
+データベーススキーマの変更を管理するため、`rusqlite_migration`ライブラリを使用しています。アプリケーション起動時に自動的に必要なマイグレーションが実行され、データベースを最新のスキーマに更新します。
+
+### ディレクトリ構造
+
+```text
+src-tauri/src/
+├── migrations/
+│   ├── 001_remove_title_add_date.sql  # マイグレーションSQLファイル
+│   └── 002_xxx.sql                     # 新しいマイグレーション（将来追加）
+├── db.rs                               # データベース初期化とマイグレーション実行
+└── lib.rs                              # アプリケーションエントリーポイント
+```
+
+### マイグレーションの仕組み
+
+#### 1. バージョン管理
+
+- `rusqlite_migration`はSQLiteの`user_version`フィールドを使用してバージョンを管理します
+- 追加のテーブルは不要で、軽量かつ高速です
+- 各マイグレーションSQLファイルが順番に実行され、バージョンが自動的に更新されます
+
+#### 2. マイグレーションSQLファイル
+
+各マイグレーションはSQLファイルとして管理されます。ファイル名は`001_xxx.sql`、`002_xxx.sql`のように連番で命名します。
+
+```sql
+-- 001_remove_title_add_date.sql
+-- マイグレーションの説明をコメントで記載
+
+-- SQLステートメントを記述
+CREATE TABLE ...
+ALTER TABLE ...
+```
+
+#### 3. マイグレーション実行フロー
+
+アプリケーション起動時に以下の順序で実行されます：
+
+1. `Database::new()`が呼び出される
+2. `rusqlite_migration`が現在の`user_version`を確認
+3. 未適用のマイグレーションを順次実行
+4. `user_version`が自動的に更新される
+5. 通常のテーブル作成処理を実行（新規インストール時）
+
+### 新しいマイグレーションを作成する手順
+
+#### ステップ1: マイグレーションSQLファイルを作成
+
+`src-tauri/src/migrations/`ディレクトリに連番のSQLファイルを作成します。
+
+例: `002_add_new_column.sql`
+
+```sql
+-- 002_add_new_column.sql
+-- マイグレーションの説明をコメントで記載
+
+-- カラム追加の例
+ALTER TABLE posts ADD COLUMN new_column TEXT DEFAULT 'default_value';
+```
+
+**命名規則:**
+
+- ファイル名は`001_xxx.sql`、`002_xxx.sql`のように連番で命名
+- 数字部分は連続している必要がある（順序が重要）
+- アンダースコア区切りで説明を含める
+
+#### ステップ2: `db.rs`に登録
+
+`src-tauri/src/db.rs`の`Database::new()`メソッド内の`Migrations::new()`に新しいマイグレーションを追加します。
+
+```rust
+let migrations = Migrations::new(vec![
+    M::up(include_str!("migrations/001_remove_title_add_date.sql")),
+    M::up(include_str!("migrations/002_add_new_column.sql")),  // 追加
+]);
+```
+
+**重要:** マイグレーションは配列の順序通りに実行されます。必ず時系列順に並べる必要があります。
+
+#### ステップ3: `db.rs`のテーブル定義を更新
+
+新規インストール時に作成されるテーブル定義を最新のスキーマに合わせて更新します。
+
+`src-tauri/src/db.rs`の`create_tables()`メソッド内の`CREATE TABLE`文を修正します。
+
+#### ステップ4: `database.md`を更新
+
+`docs/database.md`のテーブル定義も最新の状態に更新します。
+
+### テーブル定義を変更する際の手順
+
+#### 1. 変更内容の確認
+
+- 追加するカラム
+- 削除するカラム
+- 変更するカラム（型、制約など）
+- 追加/削除するインデックス
+
+#### 2. マイグレーションファイルの作成
+
+上記「新しいマイグレーションを作成する手順」に従ってマイグレーションファイルを作成します。
+
+#### 3. データ移行の考慮
+
+**カラム追加の場合:**
+
+```sql
+-- SQLファイル内に記述
+ALTER TABLE posts ADD COLUMN new_column TEXT DEFAULT 'default_value';
+```
+
+**カラム削除の場合:**
+SQLiteは`ALTER TABLE DROP COLUMN`を直接サポートしていないため、以下の手順が必要：
+
+1. 外部キー制約を無効化
+2. 新しいテーブルを作成（削除対象カラムを除く）
+3. 既存データを移行
+4. 古いテーブルを削除
+5. 新しいテーブルをリネーム
+6. 外部キー制約を再有効化
+
+```sql
+-- 例: titleカラムを削除、dateカラムを追加
+-- 外部キー制約を一時的に無効化
+PRAGMA foreign_keys = OFF;
+
+-- 新しいテーブルを作成
+CREATE TABLE posts_new (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    comment TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
+-- データ移行（titleは無視、dateはcreated_atから抽出）
+INSERT INTO posts_new (id, date, comment, created_at, updated_at)
+SELECT 
+    id,
+    date(created_at) as date,
+    comment,
+    created_at,
+    updated_at
+FROM posts;
+
+-- 古いテーブルを削除
+DROP TABLE posts;
+
+-- 新しいテーブルをリネーム
+ALTER TABLE posts_new RENAME TO posts;
+
+-- 外部キー制約を再有効化
+PRAGMA foreign_keys = ON;
+```
+
+**カラム型変更の場合:**
+SQLiteは型変換をサポートしていないため、カラム削除と同様の手順が必要です。
+
+#### 4. インデックスの再作成
+
+テーブル構造変更後、必要なインデックスを再作成します。
+
+```sql
+-- SQLファイル内に記述
+CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC);
+```
+
+#### 5. 外部キー制約の考慮
+
+`post_beverages`テーブルなど、外部キー制約を持つテーブルを変更する場合は注意が必要です。
+マイグレーションSQLファイル内で`PRAGMA foreign_keys = OFF`で一時的に無効化し、最後に`PRAGMA foreign_keys = ON`で再有効化します。
+
+#### 6. モデル定義の更新
+
+`src-tauri/src/models.rs`の構造体定義を最新のスキーマに合わせて更新します。
+
+#### 7. クエリの更新
+
+`src-tauri/src/commands.rs`のクエリを最新のスキーマに合わせて更新します。
+
+### ベストプラクティス
+
+#### 1. トランザクションの使用
+
+`rusqlite_migration`は自動的にトランザクション内でマイグレーションを実行します。エラー時は自動的にロールバックされます。
+
+SQLファイル内で明示的にトランザクションを開始・終了する必要はありません（`rusqlite_migration`が管理）。
+
+#### 2. 冪等性の確保
+
+`rusqlite_migration`は自動的に適用済みマイグレーションをスキップするため、SQLファイル内で明示的なチェックは不要です。
+
+ただし、カラム削除などテーブル再作成が必要な場合、テーブルが存在しない状態でもエラーにならないように`IF NOT EXISTS`や`IF EXISTS`を使用することを推奨します。
+
+```sql
+-- 例: インデックス作成時の冪等性
+CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC);
+```
+
+#### 3. SQLファイルのコメント
+
+各SQLファイルの先頭にマイグレーションの説明をコメントで記載します。
+
+```sql
+-- 002_add_new_column.sql
+-- postsテーブルにnew_columnカラムを追加
+```
+
+#### 4. データ損失の防止
+
+カラム削除や型変更の際は、必要なデータを適切に移行します。
+データ移行のロジックはSQLの`SELECT ... FROM`文を使って記述します。
+
+#### 5. バックアップの推奨
+
+重要なデータ変更の前には、データベースファイルのバックアップを推奨します。
+
+#### 6. 外部キー制約の管理
+
+外部キー制約を持つテーブルを変更する場合は、必ず`PRAGMA foreign_keys = OFF`で無効化し、最後に`PRAGMA foreign_keys = ON`で再有効化します。
+
+### 注意事項
+
+#### 1. ファイル名の順序
+
+- マイグレーションSQLファイルは連番で命名する必要があります（`001_xxx.sql`、`002_xxx.sql`、...）
+- `db.rs`の`Migrations::new()`内の配列は時系列順（ファイル番号順）に並べる必要があります
+- 一度追加したマイグレーションの順序を変更しないでください
+
+#### 2. マイグレーションの削除
+
+一度リリースしたマイグレーションSQLファイルは削除しないでください。既存ユーザーのデータベースでエラーが発生する可能性があります。
+
+ただし、`db.rs`から該当する`M::up()`の行を削除すると、そのマイグレーションはスキップされますが、これは推奨されません。
+
+#### 3. SQLiteの制約
+
+- `ALTER TABLE DROP COLUMN`は直接サポートされていません（SQLite 3.35.0以降ではサポートされていますが、互換性のためにテーブル再作成方式を推奨）
+- `ALTER TABLE MODIFY COLUMN`はサポートされていません
+- 複雑な変更はテーブル再作成が必要です
+
+#### 4. パフォーマンス
+
+大量データがある場合、マイグレーション実行時間が長くなる可能性があります。必要に応じてバッチ処理を検討してください。
+
+#### 5. user_versionフィールド
+
+`rusqlite_migration`はSQLiteの`user_version`フィールドを使用してバージョンを管理します。
+他のコードが`PRAGMA user_version`を直接変更すると、マイグレーションの動作に影響を与える可能性があります。
+
+### トラブルシューティング
+
+#### マイグレーションが実行されない
+
+1. `db.rs`の`Migrations::new()`に新しいマイグレーションSQLファイルが追加されているか確認
+2. ファイル名の番号が正しく連番になっているか確認
+3. `include_str!`のパスが正しいか確認
+4. ログを確認してエラーメッセージを確認
+
+#### マイグレーションエラーが発生した場合
+
+1. エラーログを確認
+2. SQLファイルの構文エラーをチェック
+3. データベースファイルのバックアップから復元
+4. SQLファイルを修正
+5. 再度マイグレーションを実行
+
+**注意:** `rusqlite_migration`はトランザクション内で実行されるため、エラー時は自動的にロールバックされます。
+
+#### バージョンが不正な状態になった場合
+
+`user_version`フィールドを直接修正することは推奨しません。可能であれば、データベースファイルを再作成することを推奨します。
+
+必要に応じて、SQLiteの`PRAGMA user_version`コマンドで確認できますが、直接変更は避けてください。
+
+#### マイグレーションの順序が正しくない場合
+
+マイグレーションは配列の順序通りに実行されます。既に実行済みのマイグレーションの前に新しいマイグレーションを挿入することは避けてください。
+
+新しいマイグレーションは常に配列の最後に追加してください。

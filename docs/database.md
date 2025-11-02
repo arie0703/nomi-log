@@ -13,7 +13,7 @@ SQLiteを使用してローカルデータを永続化する。以下の4つの�
 | カラム名 | 型 | 制約 | 説明 |
 |---------|-----|------|------|
 | id | INTEGER | PRIMARY KEY AUTOINCREMENT | 投稿ID |
-| title | TEXT | NOT NULL | タイトル |
+| date | TEXT | NOT NULL | 投稿日（YYYY-MM-DD形式） |
 | comment | TEXT | | コメント（任意） |
 | created_at | TEXT | NOT NULL DEFAULT CURRENT_TIMESTAMP | 作成日時（ISO8601形式） |
 | updated_at | TEXT | NOT NULL DEFAULT CURRENT_TIMESTAMP | 更新日時（ISO8601形式） |
@@ -22,7 +22,7 @@ SQLiteを使用してローカルデータを永続化する。以下の4つの�
 ```sql
 CREATE TABLE posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
+  date TEXT NOT NULL,
   comment TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
@@ -148,11 +148,11 @@ posts (1) ────< (多) post_beverages (多) >─── (1) beverages (多
 
 ## 主なクエリ例
 
-### 投稿一覧の取得（最新順）
+### 投稿一覧の取得（日付順）
 ```sql
 SELECT 
   p.id,
-  p.title,
+  p.date,
   p.comment,
   p.created_at,
   GROUP_CONCAT(b.name || ' (' || pb.amount || 'ml)', ', ') as beverages
@@ -160,7 +160,7 @@ FROM posts p
 LEFT JOIN post_beverages pb ON p.id = pb.post_id
 LEFT JOIN beverages b ON pb.beverage_id = b.id
 GROUP BY p.id
-ORDER BY p.created_at DESC;
+ORDER BY p.date DESC, p.created_at DESC;
 ```
 
 ### 特定のお酒を含む投稿を取得

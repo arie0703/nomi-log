@@ -11,18 +11,18 @@ pub fn get_posts(db: State<'_, Mutex<Database>>) -> Result<Vec<PostWithBeverages
     let mut stmt = db.conn().prepare(
         "SELECT 
             p.id,
-            p.title,
+            p.date,
             p.comment,
             p.created_at,
             p.updated_at
         FROM posts p
-        ORDER BY p.created_at DESC"
+        ORDER BY p.date DESC, p.created_at DESC"
     )?;
 
     let posts_iter = stmt.query_map([], |row| {
         Ok(PostWithBeverages {
             id: row.get(0)?,
-            title: row.get(1)?,
+            date: row.get(1)?,
             comment: row.get(2)?,
             created_at: row.get(3)?,
             updated_at: row.get(4)?,
@@ -68,8 +68,8 @@ pub fn create_post(
 
     // 投稿を作成
     tx.execute(
-        "INSERT INTO posts (title, comment) VALUES (?1, ?2)",
-        params![request.title, request.comment],
+        "INSERT INTO posts (date, comment) VALUES (?1, ?2)",
+        params![request.date, request.comment],
     )?;
 
     let post_id = tx.last_insert_rowid();
@@ -97,8 +97,8 @@ pub fn update_post(
 
     // 投稿を更新
     tx.execute(
-        "UPDATE posts SET title = ?1, comment = ?2, updated_at = datetime('now', 'localtime') WHERE id = ?3",
-        params![request.title, request.comment, id],
+        "UPDATE posts SET date = ?1, comment = ?2, updated_at = datetime('now', 'localtime') WHERE id = ?3",
+        params![request.date, request.comment, id],
     )?;
 
     // 既存のお酒との関連を削除
