@@ -38,7 +38,8 @@ pub fn get_posts(db: State<'_, Mutex<Database>>) -> Result<Vec<PostWithBeverages
             "SELECT 
                 pb.beverage_id,
                 b.name,
-                pb.amount
+                pb.amount,
+                b.alcohol_content
             FROM post_beverages pb
             INNER JOIN beverages b ON pb.beverage_id = b.id
             WHERE pb.post_id = ?"
@@ -49,6 +50,7 @@ pub fn get_posts(db: State<'_, Mutex<Database>>) -> Result<Vec<PostWithBeverages
                 beverage_id: row.get(0)?,
                 beverage_name: row.get(1)?,
                 amount: row.get(2)?,
+                alcohol_content: row.get(3)?,
             })
         })?;
 
@@ -368,5 +370,95 @@ pub fn delete_beverage(db: State<'_, Mutex<Database>>, id: i64) -> Result<(), Ap
     )?;
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_monthly_alcohol_intake(
+    db: State<'_, Mutex<Database>>,
+    year: i64,
+    month: i64,
+) -> Result<MonthlyAlcoholIntake, AppError> {
+    let db: MutexGuard<'_, Database> = db.lock().unwrap();
+    
+    // 指定された年月の開始日と終了日を計算
+    let start_date = format!("{:04}-{:02}-01", year, month);
+    let end_date = if month == 12 {
+        format!("{:04}-01-01", year + 1)
+    } else {
+        format!("{:04}-{:02}-01", year, month + 1)
+    };
+
+    // 指定された月の投稿を取得
+    let mut stmt = db.conn().prepare(
+        "SELECT 
+            p.id,
+            p.date
+        FROM posts p
+        WHERE p.date >= ?1 AND p.date < ?2
+        ORDER BY p.date"
+    )?;
+
+    let posts = stmt.query_map(params![start_date, end_date], |row| {
+        Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
+    })?;
+
+    let posts_data: Vec<(i64, String)> = posts.collect::<Result<Vec<_>, _>>()?;
+    
+    let mut total_intake = 0.0;
+    let mut unique_dates = std::collections::HashSet::new();
+
+    // 各投稿のアルコール摂取量を計算
+    for (post_id, date) in &posts_data {
+        unique_dates.insert(date.clone());
+        
+        let mut beverage_stmt = db.conn().prepare(
+            "SELECT 
+                pb.amount,
+                b.alcohol_content
+            FROM post_beverages pb
+            INNER JOIN beverages b ON pb.beverage_id = b.id
+            WHERE pb.post_id = ?"
+        )?;
+
+        let beverages = beverage_stmt.query_map(params![post_id], |row| {
+            Ok((row.get::<_, f64>(0)?, row.get::<_, Option<f64>>(1)?))
+        })?;
+
+        for beverage in beverages {
+            let (amount, alcohol_content) = beverage?;
+            if let Some(alc_content) = alcohol_content {
+                if alc_content > 0.0 {
+                    // 飲んだ容量(ml) * アルコール度数(%) / 100 * 0.8
+                    total_intake += amount * (alc_content / 100.0) * 0.8;
+                }
+            }
+        }
+    }
+
+    let drinking_days = unique_dates.len() as i64;
+    
+    // 月の日数を計算（うるう年も考慮）
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            // うるう年の判定
+            if (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0) {
+                29
+            } else {
+                28
+            }
+        }
+        _ => 30, // エラー時のデフォルト値
+    };
+    
+    // 1日当たりの平均摂取量は月の日数で割る（飲酒記録のない日も含む）
+    let average_per_day = total_intake / days_in_month as f64;
+
+    Ok(MonthlyAlcoholIntake {
+        total_intake,
+        average_per_day,
+        drinking_days,
+    })
 }
 

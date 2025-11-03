@@ -4,9 +4,10 @@ import "./assets/styles/app.scss";
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
 import BeverageList from "./components/BeverageList";
+import AlcoholIntakeView from "./components/AlcoholIntakeView";
 import type { PostWithBeverages, Beverage } from "./types";
 
-type Tab = "posts" | "beverages";
+type Tab = "posts" | "beverages" | "alcohol-intake";
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("posts");
@@ -24,9 +25,10 @@ function App() {
   useEffect(() => {
     if (activeTab === "posts") {
       loadPosts();
-    } else {
+    } else if (activeTab === "beverages") {
       loadBeverages();
     }
+    // alcohol-intakeタブの場合はデータロードは不要（コンポーネント内で処理）
   }, [activeTab]);
 
   const loadPosts = async () => {
@@ -71,7 +73,7 @@ function App() {
           onClick={() => setActiveTab("posts")}
           className={`app--tab-button ${activeTab === "posts" ? "active" : ""}`}
         >
-          投稿
+          飲酒記録
         </button>
         <button
           onClick={() => setActiveTab("beverages")}
@@ -79,7 +81,15 @@ function App() {
             activeTab === "beverages" ? "active" : ""
           }`}
         >
-          お酒管理
+          酒棚
+        </button>
+        <button
+          onClick={() => setActiveTab("alcohol-intake")}
+          className={`app--tab-button ${
+            activeTab === "alcohol-intake" ? "active" : ""
+          }`}
+        >
+          飲酒量
         </button>
       </div>
 
@@ -106,6 +116,13 @@ function App() {
             onBeverageDeleted={loadBeverages}
             onBeverageSaved={loadBeverages}
           />
+        </div>
+      )}
+
+      {/* 飲酒量タブ */}
+      {activeTab === "alcohol-intake" && (
+        <div className="app--content">
+          <AlcoholIntakeView />
         </div>
       )}
     </div>

@@ -1,0 +1,96 @@
+@import "variables";
+@import "mixins";
+
+.alcohol-intake-view {
+  &--title {
+    margin-bottom: $spacing-xl;
+    color: $text-primary;
+  }
+
+  &--selector {
+    display: flex;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-xl;
+    align-items: center;
+  }
+
+  &--selector-item {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    label {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      font-weight: 500;
+    }
+  }
+
+  &--select {
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    background-color: $bg-primary;
+    color: $text-primary;
+    font-size: $font-size-base;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $primary-color;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+    }
+  }
+
+  &--error {
+    @include error-box;
+    margin-bottom: $spacing-xl;
+  }
+
+  &--loading {
+    color: $text-secondary;
+    text-align: center;
+    padding: $spacing-xxl;
+  }
+
+  &--empty {
+    color: $text-muted;
+    text-align: center;
+    padding: $spacing-xxl;
+  }
+
+  &--content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xxl;
+  }
+
+  &--stat-item {
+    @include card;
+    background-color: $bg-primary;
+    border-color: $border-color;
+    padding: $spacing-xl;
+  }
+
+  &--stat-label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-md;
+    font-weight: 500;
+  }
+
+  &--stat-value {
+    font-size: $font-size-xl;
+    color: $text-primary;
+    font-weight: bold;
+  }
+
+  &--stat-gauge {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+

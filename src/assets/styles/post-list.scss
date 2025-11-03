@@ -71,6 +71,13 @@
         }
       }
     }
+
+    &-alcohol-intake {
+      margin-top: $spacing-lg;
+      font-size: $font-size-sm;
+      color: $text-primary;
+      font-weight: 500;
+    }
   }
 }
 

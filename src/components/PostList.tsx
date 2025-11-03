@@ -1,4 +1,5 @@
 import { type PostWithBeverages } from "../types";
+import { calculateAlcoholIntake } from "../utils/alcohol";
 import "../assets/styles/post-list.scss";
 
 interface PostListProps {
@@ -33,18 +34,24 @@ export default function PostList({ posts, loading }: PostListProps) {
             )}
 
             {post.beverages.length > 0 && (
-              <div>
-                <div className="post-list--item-beverages-label">
-                  飲んだお酒:
+              <>
+                <div>
+                  <div className="post-list--item-beverages-label">
+                    飲んだお酒:
+                  </div>
+                  <ul className="post-list--item-beverages-list">
+                    {post.beverages.map((beverage, index) => (
+                      <li key={index}>
+                        {beverage.beverage_name} - {beverage.amount}ml
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <ul className="post-list--item-beverages-list">
-                  {post.beverages.map((beverage, index) => (
-                    <li key={index}>
-                      {beverage.beverage_name} - {beverage.amount}ml
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                <div className="post-list--item-alcohol-intake">
+                  アルコール摂取量:{" "}
+                  {calculateAlcoholIntake(post.beverages).toFixed(1)} ml
+                </div>
+              </>
             )}
           </div>
         ))}

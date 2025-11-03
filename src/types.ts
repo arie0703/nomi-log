@@ -20,6 +20,7 @@ export interface BeverageAmount {
   beverage_id: number;
   beverage_name: string;
   amount: number;
+  alcohol_content?: number;
 }
 
 export interface Post {
@@ -48,5 +49,11 @@ export interface CreatePostRequest {
 export interface BeverageAmountInput {
   beverage_id: number;
   amount: number;
+}
+
+export interface MonthlyAlcoholIntake {
+  total_intake: number;
+  average_per_day: number;
+  drinking_days: number;
 }
 
