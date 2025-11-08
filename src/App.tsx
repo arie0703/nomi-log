@@ -99,7 +99,11 @@ function App() {
           {postsError && <div className="app--error">エラー: {postsError}</div>}
 
           <PostForm onPostCreated={loadPosts} />
-          <PostList posts={posts} loading={postsLoading} />
+          <PostList
+            posts={posts}
+            loading={postsLoading}
+            onPostDeleted={loadPosts}
+          />
         </div>
       )}
 

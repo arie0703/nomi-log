@@ -23,13 +23,29 @@
     color: $text-secondary;
   }
 
+  &--error {
+    padding: $spacing-md;
+    margin-bottom: $spacing-lg;
+    background-color: #ffebee;
+    border: 1px solid #ef5350;
+    border-radius: $border-radius;
+    color: #c62828;
+  }
+
   &--item {
     @include card;
     background-color: $bg-primary;
     border-color: $border-color;
 
     &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       margin-bottom: $spacing-lg;
+    }
+
+    &-header-content {
+      flex: 1;
     }
 
     &-title {
@@ -41,6 +57,16 @@
     &-date {
       font-size: $font-size-sm;
       color: $text-secondary;
+    }
+
+    &-delete-button {
+      margin-left: $spacing-md;
+      color: $text-secondary;
+
+      &:hover {
+        color: #d32f2f;
+        background-color: rgba(211, 47, 47, 0.04);
+      }
     }
 
     &-comment {
