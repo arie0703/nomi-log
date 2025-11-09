@@ -73,7 +73,7 @@ function App() {
           onClick={() => setActiveTab("posts")}
           className={`app--tab-button ${activeTab === "posts" ? "active" : ""}`}
         >
-          飲酒記録
+          記録
         </button>
         <button
           onClick={() => setActiveTab("beverages")}
@@ -89,7 +89,7 @@ function App() {
             activeTab === "alcohol-intake" ? "active" : ""
           }`}
         >
-          飲酒量
+          データ
         </button>
       </div>
 

@@ -46,7 +46,7 @@ export default function AlcoholIntakeView() {
 
   return (
     <div className="alcohol-intake-view">
-      <h2 className="alcohol-intake-view--title">アルコール摂取量</h2>
+      <h2 className="alcohol-intake-view--title">飲酒データ</h2>
 
       {/* 年月選択 */}
       <div className="alcohol-intake-view--selector">

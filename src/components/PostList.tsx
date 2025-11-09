@@ -73,9 +73,6 @@ export default function PostList({
             <div className="post-list--item-header">
               <div className="post-list--item-header-content">
                 <h3 className="post-list--item-title">{post.date}</h3>
-                <div className="post-list--item-date">
-                  {new Date(post.created_at).toLocaleString("ja-JP")}
-                </div>
               </div>
               <IconButton
                 onClick={() => handleDeleteClick(post.id)}
