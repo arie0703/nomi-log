@@ -24,6 +24,7 @@ pub struct BeverageAmount {
     pub beverage_id: i64,
     pub beverage_name: String,
     pub amount: f64,
+    pub alcohol_content: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,5 +71,12 @@ pub struct CreateBeverageRequest {
     pub name: String,
     pub alcohol_content: Option<f64>,
     pub category_id: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonthlyAlcoholIntake {
+    pub total_intake: f64,
+    pub average_per_day: f64,
+    pub drinking_days: i64,
 }
 

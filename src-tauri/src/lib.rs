@@ -44,6 +44,7 @@ pub fn run() {
       commands::create_beverage,
       commands::update_beverage,
       commands::delete_beverage,
+      commands::get_monthly_alcohol_intake,
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
