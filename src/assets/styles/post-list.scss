@@ -59,8 +59,22 @@
       color: $text-secondary;
     }
 
+    &-actions {
+      display: flex;
+      gap: $spacing-xs;
+      align-items: center;
+    }
+
+    &-edit-button {
+      color: $text-secondary;
+
+      &:hover {
+        color: #1976d2;
+        background-color: rgba(25, 118, 210, 0.04);
+      }
+    }
+
     &-delete-button {
-      margin-left: $spacing-md;
       color: $text-secondary;
 
       &:hover {
