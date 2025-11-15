@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { type CreatePostRequest } from "../types";
+import { type CreatePostRequest, type PostWithBeverages, type Beverage } from "../types";
 import { type BeverageSelection } from "./BeverageSelector";
 import BeverageSelectorFullList from "./BeverageSelectorFullList";
 // import BeverageSelector from "./BeverageSelector"; // 現状方式を使う場合はこちらを使用
@@ -8,9 +8,18 @@ import "../assets/styles/post-form.scss";
 
 interface PostFormProps {
   onPostCreated: () => void;
+  editingPost?: PostWithBeverages | null;
+  onPostUpdated?: () => void;
+  onCancel?: () => void;
 }
 
-export default function PostForm({ onPostCreated }: PostFormProps) {
+export default function PostForm({ 
+  onPostCreated, 
+  editingPost, 
+  onPostUpdated,
+  onCancel 
+}: PostFormProps) {
+  const [allBeverages, setAllBeverages] = useState<Beverage[]>([]);
   const [date, setDate] = useState(() => {
     // デフォルトは今日の日付
     const today = new Date();
@@ -25,6 +34,58 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
   >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 全てのお酒を読み込む（編集時にbeverage_idからBeverageオブジェクトに変換するため）
+  useEffect(() => {
+    const loadAllBeverages = async () => {
+      try {
+        const result = await invoke<Beverage[]>("get_beverages");
+        setAllBeverages(result);
+      } catch (err) {
+        console.error("Error loading beverages:", err);
+      }
+    };
+    loadAllBeverages();
+  }, []);
+
+  // 編集モードの場合、既存の投稿データをフォームに読み込む
+  useEffect(() => {
+    if (editingPost) {
+      setDate(editingPost.date);
+      setComment(editingPost.comment || "");
+      
+      // BeverageAmountからBeverageSelectionに変換
+      const beverages: BeverageSelection[] = editingPost.beverages.map((ba) => {
+        const beverage = allBeverages.find((b) => b.id === ba.beverage_id);
+        if (!beverage) {
+          // お酒が見つからない場合は、最小限の情報で作成
+          return {
+            beverage: {
+              id: ba.beverage_id,
+              name: ba.beverage_name,
+              alcohol_content: ba.alcohol_content,
+              category_id: 0, // 一時的な値
+            },
+            amount: ba.amount,
+          };
+        }
+        return {
+          beverage,
+          amount: ba.amount,
+        };
+      });
+      setSelectedBeverages(beverages);
+    } else {
+      // 新規作成モードの場合、フォームをリセット
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      setDate(`${year}-${month}-${day}`);
+      setComment("");
+      setSelectedBeverages([]);
+    }
+  }, [editingPost, allBeverages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,20 +125,31 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
         })),
       };
 
-      await invoke("create_post", { request });
-      // フォームをリセット
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const day = String(today.getDate()).padStart(2, "0");
-      setDate(`${year}-${month}-${day}`);
-      setComment("");
-      setSelectedBeverages([]);
-      setError(null);
-      onPostCreated();
+      if (editingPost) {
+        // 編集モード
+        await invoke("update_post", { id: editingPost.id, request });
+        setError(null);
+        onPostUpdated?.();
+      } else {
+        // 新規作成モード
+        await invoke("create_post", { request });
+        // フォームをリセット
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        setDate(`${year}-${month}-${day}`);
+        setComment("");
+        setSelectedBeverages([]);
+        setError(null);
+        onPostCreated();
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "投稿の作成に失敗しました");
-      console.error("Error creating post:", err);
+      const errorMessage = editingPost 
+        ? "投稿の更新に失敗しました" 
+        : "投稿の作成に失敗しました";
+      setError(err instanceof Error ? err.message : errorMessage);
+      console.error(`Error ${editingPost ? "updating" : "creating"} post:`, err);
     } finally {
       setLoading(false);
     }
@@ -85,7 +157,7 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
 
   return (
     <div className="post-form">
-      <h2 className="post-form--title">新規投稿</h2>
+      <h2 className="post-form--title">{editingPost ? "投稿を編集" : "新規投稿"}</h2>
       <form onSubmit={handleSubmit}>
         <div className="post-form--form-group">
           <label>
@@ -126,13 +198,27 @@ export default function PostForm({ onPostCreated }: PostFormProps) {
 
         {error && <div className="post-form--error">{error}</div>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="post-form--submit-button"
-        >
-          {loading ? "投稿中..." : "投稿する"}
-        </button>
+        <div className="post-form--actions">
+          {editingPost && onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="post-form--cancel-button"
+              disabled={loading}
+            >
+              キャンセル
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="post-form--submit-button"
+          >
+            {loading 
+              ? (editingPost ? "更新中..." : "投稿中...") 
+              : (editingPost ? "更新する" : "投稿する")}
+          </button>
+        </div>
       </form>
     </div>
   );

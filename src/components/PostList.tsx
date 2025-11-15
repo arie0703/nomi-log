@@ -10,8 +10,10 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import { type PostWithBeverages } from "../types";
 import { calculateAlcoholIntake } from "../utils/alcohol";
+import PostEditDialog from "./PostEditDialog";
 import "../assets/styles/post-list.scss";
 
 interface PostListProps {
@@ -27,6 +29,8 @@ export default function PostList({
 }: PostListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<PostWithBeverages | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleDeleteClick = (postId: number) => {
@@ -55,6 +59,22 @@ export default function PostList({
     setError(null);
   };
 
+  const handleEditClick = (post: PostWithBeverages) => {
+    setEditingPost(post);
+    setEditDialogOpen(true);
+    setError(null);
+  };
+
+  const handleEditClose = () => {
+    setEditDialogOpen(false);
+    setEditingPost(null);
+    setError(null);
+  };
+
+  const handlePostUpdated = () => {
+    onPostDeleted(); // 投稿一覧を再読み込み
+  };
+
   if (loading) {
     return <div className="post-list--loading">読み込み中...</div>;
   }
@@ -69,19 +89,29 @@ export default function PostList({
       {error && <div className="post-list--error">エラー: {error}</div>}
       <div className="post-list--container">
         {posts.map((post) => (
-          <div key={post.id} className="post-list--item">
+            <div key={post.id} className="post-list--item">
             <div className="post-list--item-header">
               <div className="post-list--item-header-content">
                 <h3 className="post-list--item-title">{post.date}</h3>
               </div>
-              <IconButton
-                onClick={() => handleDeleteClick(post.id)}
-                className="post-list--item-delete-button"
-                size="small"
-                aria-label="削除"
-              >
-                <DeleteIcon sx={{ color: "#d32f2f" }} />
-              </IconButton>
+              <div className="post-list--item-actions">
+                <IconButton
+                  onClick={() => handleEditClick(post)}
+                  className="post-list--item-edit-button"
+                  size="small"
+                  aria-label="編集"
+                >
+                  <EditIcon sx={{ color: "#1976d2" }} />
+                </IconButton>
+                <IconButton
+                  onClick={() => handleDeleteClick(post.id)}
+                  className="post-list--item-delete-button"
+                  size="small"
+                  aria-label="削除"
+                >
+                  <DeleteIcon sx={{ color: "#d32f2f" }} />
+                </IconButton>
+              </div>
             </div>
 
             {post.comment && (
@@ -150,6 +180,14 @@ export default function PostList({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* 編集ダイアログ */}
+      <PostEditDialog
+        open={editDialogOpen}
+        editingPost={editingPost}
+        onClose={handleEditClose}
+        onPostUpdated={handlePostUpdated}
+      />
     </div>
   );
 }
