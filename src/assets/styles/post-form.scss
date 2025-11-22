@@ -100,10 +100,33 @@
     margin-bottom: $spacing-lg;
   }
 
+  &--actions {
+    display: flex;
+    gap: $spacing-md;
+    justify-content: flex-end;
+  }
+
   &--submit-button {
     @include button-primary;
     padding: $spacing-md $spacing-xl;
     font-size: $font-size-base;
+  }
+
+  &--cancel-button {
+    @include button-base;
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-base;
+    background-color: #999;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background-color: darken(#999, 10%);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   }
 }
 
