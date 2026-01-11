@@ -19,13 +19,13 @@ import "../assets/styles/post-list.scss";
 interface PostListProps {
   posts: PostWithBeverages[];
   loading: boolean;
-  onPostDeleted: () => void;
+  onPostUpdated: () => void;
 }
 
 export default function PostList({
   posts,
   loading,
-  onPostDeleted,
+  onPostUpdated,
 }: PostListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingPostId, setDeletingPostId] = useState<number | null>(null);
@@ -46,7 +46,7 @@ export default function PostList({
       await invoke("delete_post", { id: deletingPostId });
       setDeleteDialogOpen(false);
       setDeletingPostId(null);
-      onPostDeleted();
+      onPostUpdated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "投稿の削除に失敗しました");
       console.error("Error deleting post:", err);
@@ -72,7 +72,7 @@ export default function PostList({
   };
 
   const handlePostUpdated = () => {
-    onPostDeleted(); // 投稿一覧を再読み込み
+    onPostUpdated(); // 投稿一覧を再読み込み
   };
 
   if (loading) {

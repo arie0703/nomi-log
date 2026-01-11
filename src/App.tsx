@@ -102,7 +102,7 @@ function App() {
           <PostList
             posts={posts}
             loading={postsLoading}
-            onPostDeleted={loadPosts}
+            onPostUpdated={loadPosts}
           />
         </div>
       )}
