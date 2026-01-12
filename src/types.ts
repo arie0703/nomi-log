@@ -55,5 +55,6 @@ export interface MonthlyAlcoholIntake {
   total_intake: number;
   average_per_day: number;
   drinking_days: number;
+  drinking_dates: string[];
 }
 

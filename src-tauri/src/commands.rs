@@ -437,6 +437,10 @@ pub fn get_monthly_alcohol_intake(
 
     let drinking_days = unique_dates.len() as i64;
     
+    // 飲酒日付のリストを作成（ソート済み）
+    let mut drinking_dates: Vec<String> = unique_dates.into_iter().collect();
+    drinking_dates.sort();
+    
     // 月の日数を計算（うるう年も考慮）
     let days_in_month = match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
@@ -459,6 +463,7 @@ pub fn get_monthly_alcohol_intake(
         total_intake,
         average_per_day,
         drinking_days,
+        drinking_dates,
     })
 }
 

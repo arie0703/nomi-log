@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { MonthlyAlcoholIntake } from "../types";
 import AlcoholGauge from "./AlcoholGauge";
+import CalendarView from "./CalendarView";
 import "../assets/styles/alcohol-intake-view.scss";
 
 export default function AlcoholIntakeView() {
@@ -112,6 +113,13 @@ export default function AlcoholIntakeView() {
               {data.drinking_days} 日
             </div>
           </div>
+
+          {/* カレンダービュー */}
+          <CalendarView
+            year={year}
+            month={month}
+            drinkingDates={data.drinking_dates}
+          />
         </div>
       ) : (
         <div className="alcohol-intake-view--empty">データがありません</div>

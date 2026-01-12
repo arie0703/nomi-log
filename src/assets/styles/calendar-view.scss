@@ -1,0 +1,156 @@
+@import "variables";
+
+.calendar-view {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 75%;
+  margin-left: auto;
+  margin-right: auto;
+
+  &--header {
+    margin-bottom: 16px;
+  }
+
+  &--title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin: 0;
+    text-align: center;
+  }
+
+  &--grid {
+    width: 100%;
+  }
+
+  &--weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+
+  &--weekday {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 4px 0;
+    color: #a0a0a0;
+
+    &-sunday {
+      color: #ff6b6b;
+    }
+
+    &-saturday {
+      color: #4dabf7;
+    }
+  }
+
+  &--body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &--week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  &--day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s ease;
+    position: relative;
+    min-height: 44px;
+
+    &:hover:not(&-empty) {
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    &-empty {
+      background-color: transparent;
+    }
+
+    &-sunday {
+      .calendar-view--day-number {
+        color: #ff6b6b;
+      }
+    }
+
+    &-saturday {
+      .calendar-view--day-number {
+        color: #4dabf7;
+      }
+    }
+
+    &-today {
+      border: 2px solid #ff69b4;
+      background-color: rgba(255, 105, 180, 0.1);
+
+      .calendar-view--day-number {
+        font-weight: 700;
+      }
+    }
+
+    &-drinking {
+      background-color: rgba(255, 105, 180, 0.25);
+      
+      &:hover {
+        background-color: rgba(255, 105, 180, 0.35);
+      }
+    }
+
+    &-number {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #d0d0d0;
+    }
+
+    &-indicator {
+      font-size: 0.7rem;
+      margin-top: 2px;
+    }
+  }
+
+  &--legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  &--legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #a0a0a0;
+  }
+
+  &--legend-indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+
+    &.calendar-view--legend-drinking {
+      background-color: rgba(255, 105, 180, 0.25);
+    }
+
+    &.calendar-view--legend-today {
+      border: 2px solid #ff69b4;
+      background-color: rgba(255, 105, 180, 0.1);
+    }
+  }
+}
