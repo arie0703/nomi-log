@@ -78,5 +78,6 @@ pub struct MonthlyAlcoholIntake {
     pub total_intake: f64,
     pub average_per_day: f64,
     pub drinking_days: i64,
+    pub drinking_dates: Vec<String>,
 }
 
